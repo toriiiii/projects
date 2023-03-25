@@ -1,6 +1,5 @@
-//
 // Author: Tori Anonuevo
-//
+// Purpose: User can play reversi against the program in the terminal. The program applies common reversi strategies to make logical plays.
 
 #include <stdio.h>
 #include <string.h>
