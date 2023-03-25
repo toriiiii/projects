@@ -2,9 +2,9 @@
 // Author: Tori Anonuevo
 //
 
-// #include "reversi.h"
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 void printBoard(char board[][26], int n) {
     char gridLetter ='a';
@@ -29,19 +29,16 @@ bool positionInBounds(int n, int row, int col) {
     return (row < n && col < n && row >= 0 && col >= 0);
 }
 
-// Function that converts the grid letters to their corresponding matrix indices
 int convertToInt(char letter) {
     int number = letter - 'a';
     return number;
 }
 
-// Function that converts the matrix indices to their corresponding grid letters
 char convertToLetter(int number) {
     char letter = number + 'a';
     return letter;
 }
 
-// function that returns the opposite colour 
 char getOppositeColour(char colour) {
     if (colour == 'W') {
         return 'B';
@@ -51,52 +48,55 @@ char getOppositeColour(char colour) {
     }
 }
 
-// Function that determines the possible moves for a given colour
-void possibleMoves(char board[][26], char colour, int dimension) {
+bool possibleMoves(char possibleBoard[26][26], char colour, int dimension, char board[][26]) {
     char opposite = getOppositeColour(colour);
+    bool movesAvailable = false;
 
-    printf("Available moves for %c:\n", colour);
+    for (int i = 0; i < dimension; i++) {
+        for(int j = 0; j < dimension; j++) {
+            possibleBoard[i][j] = 'U';
+        }
+    }
 
     for (int i = 0; i < dimension; i++) {
         for(int j = 0; j < dimension; j++) {
             if (board[i][j] == opposite) {
                 if(board[i - 1][j - 1] == 'U' && checkLegalInDirection(board, dimension, i - 1, j - 1, colour, 1, 1)) {
-                    board[i - 1][j - 1] = 'P';                    
+                    possibleBoard[i - 1][j - 1] = 'P';
+                    movesAvailable = true;                    
                 }
                 if(board[i - 1][j] == 'U' && checkLegalInDirection(board, dimension, i - 1, j, colour, 1, 0)) {
-                    board[i - 1][j] = 'P';                    
+                    possibleBoard[i - 1][j] = 'P';
+                    movesAvailable = true;                    
                 }
                 if(board[i - 1][j + 1] == 'U' && checkLegalInDirection(board, dimension, i - 1, j + 1, colour, 1, -1)) {
-                    board[i - 1][j + 1] = 'P';                    
+                    possibleBoard[i - 1][j + 1] = 'P';
+                    movesAvailable = true;                    
                 }
                 if(board[i][j - 1] == 'U' && checkLegalInDirection(board, dimension, i, j - 1, colour, 0, 1)) {
-                    board[i][j - 1] = 'P';                    
+                    possibleBoard[i][j - 1] = 'P';
+                    movesAvailable = true;                    
                 }
                 if(board[i][j + 1] == 'U' && checkLegalInDirection(board, dimension, i, j + 1, colour, 0, -1)) {
-                    board[i][j + 1] = 'P';                    
+                    possibleBoard[i][j + 1] = 'P';
+                    movesAvailable = true;                    
                 }
                 if(board[i + 1][j - 1] == 'U' && checkLegalInDirection(board, dimension, i + 1, j - 1, colour, -1, 1)) {
-                    board[i + 1][j - 1] = 'P';                    
+                    possibleBoard[i + 1][j - 1] = 'P';
+                    movesAvailable = true;                    
                 }
                 if(board[i + 1][j] == 'U' && checkLegalInDirection(board, dimension, i + 1, j, colour, -1, 0)) {
-                    board[i + 1][j] = 'P';                    
+                    possibleBoard[i + 1][j] = 'P';
+                    movesAvailable = true;                    
                 }
                 if(board[i + 1][j + 1] == 'U' && checkLegalInDirection(board, dimension, i + 1, j + 1, colour, -1, -1)) {
-                    board[i + 1][j + 1] = 'P';                    
+                    possibleBoard[i + 1][j + 1] = 'P';
+                    movesAvailable = true;                    
                 }
             }
         }
     }
-    
-    for (int i = 0; i < dimension; i++) {
-        for(int j = 0; j < dimension; j++) {
-            if (board[i][j] == 'P') {
-                printf("%c%c\n", convertToLetter(i), convertToLetter(j));
-            }
-        }
-    }
-
-    return;
+    return movesAvailable;
 }
 
 bool checkLegalInDirection(char board[][26], int n, int row, int col, char colour, int deltaRow, int deltaCol) {
@@ -122,7 +122,6 @@ bool checkLegalInDirection(char board[][26], int n, int row, int col, char colou
     return false;
 }
 
-// Function that changes the tiles between a placed tile and existing tile of the same colour
 void changeIntermediateTiles(char board[][26], int row, int col, char colour, int deltaRow, int deltaCol) {
     int multiplier = 1;
     char opposite = getOppositeColour(colour);
@@ -133,14 +132,7 @@ void changeIntermediateTiles(char board[][26], int row, int col, char colour, in
     return;
 }
 
-// Function that makes the inputted move if vaild
-void placeTile(char colour, int row, int col, int n, char possibleMoves[][26], char board[][26]) {
-    if (positionInBounds(n, row, col) == false || possibleMoves[row][col] != 'P') {
-        printf("Invalid move.\n");
-        return;
-    }
-
-    printf("Valid move.\n");
+void placeTile(char colour, int row, int col, int n, char board[][26]) {
     board[row][col] = colour;
 
     if (checkLegalInDirection(board, n, row, col, colour, -1, -1)) {
@@ -167,66 +159,211 @@ void placeTile(char colour, int row, int col, int n, char possibleMoves[][26], c
     if (checkLegalInDirection(board, n, row, col, colour, 1, 1)) {
         changeIntermediateTiles(board, row, col, colour, 1, 1);
     }
-
     return;
-    
 }
 
-int main(void) {
-    int dimension = 0;
-    printf("Enter the board dimension: ");
-    scanf("%d", &dimension);
-
-    // Part 1: Initialize Board
-    char board[26][26];
-    for (int i = 0; i < dimension; i++) {
-        for (int j = 0; j < dimension; j++) {
-            board[i][j] = 'U';
-        }
-    }
-    board[dimension / 2 - 1][dimension / 2 - 1] = 'W';
-    board[dimension / 2 - 1][dimension / 2] = 'B';
-    board[dimension / 2][dimension / 2] = 'W';
-    board[dimension / 2][dimension / 2 - 1] = 'B';
-    printBoard(board, dimension);
-
-    // Part 2: Set Configuration
-    char configuration[4] = {'U', 'a', 'a', '\0'};
-    printf("Enter board configuration:\n");
-    scanf(" %s", configuration);
-    while (strcmp(configuration, "!!!") != 0) {
-        board[convertToInt(configuration[1])][convertToInt(configuration[2])] = configuration[0];
-        scanf(" %s", configuration);
-    }
-    printBoard(board, dimension);
-
-    // Part 3: Possible Moves
-    char possibleWhite[26][26];
-    char possibleBlack[26][26];
-    for (int i = 0; i < dimension; i++) {
-        for (int j = 0; j < dimension; j++) {
-            possibleWhite[i][j] = board[i][j];
-            possibleBlack[i][j] = board[i][j];
-        }
-    }
-    possibleMoves(possibleWhite, 'W', dimension);
-    possibleMoves(possibleBlack, 'B', dimension);
-
-    // Part 4: User-Inputted Move 
-    char move[4];
-    printf("Enter a move:\n");
+bool userMove(char board[][26], char possibleBoard[][26], int dimension, char humanColour) {
+    char move[3];
+    printf("Enter move for colour %c (RowCol): ", humanColour);
     scanf(" %s", move);
-    int row = convertToInt(move[1]);
-    int col = convertToInt(move[2]);
-    if (move[0] == 'W') {
-        placeTile(move[0], row, col, dimension, possibleWhite, board);
+    int row = convertToInt(move[0]);
+    int col = convertToInt(move[1]);
+    if (positionInBounds(dimension, row, col) == false || possibleBoard[row][col] != 'P') {
+        printf("Invalid move.\n");
+        return false;
     }
-    else if (move[0] == 'B') {
-        placeTile(move[0], row, col, dimension, possibleBlack, board);
+    else placeTile(humanColour, row, col, dimension, board);
+    return true;
+}
+
+int countIntermediateTiles(char board[][26], int row, int col, char colour, int deltaRow, int deltaCol) {
+    int multiplier = 1;
+    char opposite = getOppositeColour(colour);
+    int counter = 0;
+    while (board[row + (multiplier*deltaRow)][col + (multiplier*deltaCol)] == opposite) {
+        counter++;
+        multiplier++;
+    }
+    return counter;
+}
+
+int calculateTotalTurnedTiles(char board[][26], int row, int col, char colour, int n) {
+    int sum = 0;
+    if (checkLegalInDirection(board, n, row, col, colour, -1, -1)) {
+        sum = sum + countIntermediateTiles(board, row, col, colour, -1, -1);
+    }
+    if (checkLegalInDirection(board, n, row, col, colour, -1, 0)) {
+        sum = sum + countIntermediateTiles(board, row, col, colour, -1, 0);
+    }
+    if (checkLegalInDirection(board, n, row, col, colour, -1, 1)) {
+        sum = sum + countIntermediateTiles(board, row, col, colour, -1, 1);
+    }
+    if (checkLegalInDirection(board, n, row, col, colour, 0, -1)) {
+        sum = sum + countIntermediateTiles(board, row, col, colour, 0, -1);
+    }
+    if (checkLegalInDirection(board, n, row, col, colour, 0, 1)) {
+        sum = sum + countIntermediateTiles(board, row, col, colour, 0, 1);
+    }
+    if (checkLegalInDirection(board, n, row, col, colour, 1, -1)) {
+        sum = sum + countIntermediateTiles(board, row, col, colour, 1, -1);
+    }
+    if (checkLegalInDirection(board, n, row, col, colour, 1, 0)) {
+        sum = sum + countIntermediateTiles(board, row, col, colour, 1, 0);
+    }
+    if (checkLegalInDirection(board, n, row, col, colour, 1, 1)) {
+        sum = sum + countIntermediateTiles(board, row, col, colour, 1, 1);
+    }
+    // printf("turned = %d\n", sum);
+    return sum;
+}
+
+int possibleOpponentScore(char board[][26], int row, int col, int dimension, char colour, char possibleOpponentBoard[][26]) {
+    // Copy board into dummy board
+    char dummy[26][26]; 
+    for (int i = 0; i < dimension; i++) {
+        for (int j = 0; j < dimension; j++) {
+            dummy[i][j] = board[i][j];
+        }
+    }
+    // Put piece on dummy
+    placeTile(colour, row, col, dimension, dummy);
+    // Run possible moves for human on dummy board and possible board
+    char opponentColour = getOppositeColour(colour);
+    bool isPossibleMove = possibleMoves(possibleOpponentBoard, opponentColour, dimension, dummy);
+    if (isPossibleMove == true) {
+        // Calculate posisble scores for human around the piece that was just placed
+        int currentScore = 0, bestScore = 0;
+        for (int i = -1; i < 2; i++) {
+            for (int j = -1; j < 2; j++) {
+                if (possibleOpponentBoard[row + i][col + j] == 'P') {
+                    currentScore = calculateTotalTurnedTiles(dummy, row + i, col + j, opponentColour, dimension);
+                    if (currentScore > bestScore) {
+                        bestScore = currentScore;
+                    }
+                }
+            }
+        }
+        return bestScore;
+    }
+    else {
+        return 0;
+    }
+}
+
+int positionScore(char board[][26], int row, int col, int end, char colour) {
+    char opponentColour = getOppositeColour(colour);
+    // Top Row
+    if (row == 0) {
+        // Corner
+        if (col == 0 || col == end) {
+            return 100;
+        }
+        // Surrounding Square
+        if (col == 1 || col == end - 1) {
+            return -5;
+        }
+        // Edges
+        if ((board[0][0] != 'U' && board[0][end] != 'U') || board[0][0] == colour || board[0][end] == colour) {
+            return 4;
+        }
+        else if (board[0][0] == 'U' && board[0][end] == 'U') {
+            return 1;
+        }
+        else if (board[0][0] == opponentColour || board[0][end] == opponentColour) {
+            return -5;
+        }
+    }
+    // Bottom Row
+    else if (row == end) {
+        // Corner
+        if (col == 0 || col == end) {
+            return 100;
+        }
+        // Surrounding Square
+        if (col == 1 || col == end - 1) {
+            return -5;
+        }
+        // Edges
+        if ((board[end][0] != 'U' && board[end][end] != 'U') || board[end][0] == colour || board[end][end] == colour) {
+            return 4;
+        }
+        else if (board[end][0] == 'U' && board[end][end] == 'U') {
+            return 1;
+        }
+        else if (board[end][0] == opponentColour || board[end][end] == opponentColour) {
+            return -5;
+        }
     }
 
-    // Part 5: Print Final Board
-    printBoard(board, dimension);
+    // Side Edges
+    if ((col == 0 || col == end) && row != 0 && row != end) {
+        if (row == 1 || row == end - 1) {
+            return -5;
+        }
 
+        if (col == 0) {
+            if (board[0][0] == colour || board[end][0] == colour || (board[0][0] != 'U' && board[end][0] != 'U')) {
+                return 4;
+            }
+            else if (board[end][0] == opponentColour || board[0][0] == opponentColour) {
+                return -5;
+            }
+            else {
+                return 1;
+            }
+        }
+        else if (col == end) {
+            if (board[0][end] == colour || board[end][end] == colour || (board[0][end] != 'U' && board[end][end] != 'U')) {
+                return 4;
+            }
+            else if (board[end][end] == opponentColour || board[0][end] == opponentColour) {
+                return -5;
+            }
+            else {
+                return 1;
+            }
+        }
+    }
+
+    // Middle Area
+    if ((row == 1 && col == 1) || (row == 1 && col == end - 1) || (row == end - 1 && col == 1) || (row == end - 1 && col == end - 1)) {
+        return -5;
+    }
+    else return (end - 2) - abs((end/2) - row) - abs((end/2) - col);
+}
+
+int makeMove(const char board[][26], int n, char turn, int *row, int *col) {
+    char possibleBoard[26][26];
+    bool foundPossibleMoves = possibleMoves(possibleBoard, turn, n, board);
+    char possibleOpponentBoard[26][26];
+    bool foundPossibleOpponentMoves = possibleMoves(possibleBoard, turn, n, board);
+
+    int bestScore = -1000;
+    int currentScore = 0;
+    // printBoard(possibleBoard, dimension);
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            if (possibleBoard[i][j] == 'P') {
+                currentScore = calculateTotalTurnedTiles(board, i, j, turn, n);
+                currentScore = currentScore + positionScore(board, i, j, n - 1, turn) - possibleOpponentScore(board, i, j, n, turn, possibleOpponentBoard);
+                // printf("Current Score: %d at %d %d", currentScore, i, j);
+                if (bestScore < currentScore) {
+                    bestScore = currentScore;
+                    *row = i;
+                    *col = j;
+                }
+            }
+        }
+    }
     return 0;
+}
+
+int countColour(char colour, char board[][26], int dimension) {
+    int counter = 0;
+    for (int i = 0; i < dimension; i++) {
+        for(int j = 0; j < dimension; j++) {
+            if (board[i][j] == colour) counter++;
+        }
+    }
+    return counter;
 }
